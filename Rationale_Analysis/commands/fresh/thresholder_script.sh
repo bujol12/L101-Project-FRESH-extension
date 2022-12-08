@@ -22,10 +22,11 @@ function rationale {
         --predictor rationale_predictor \
         --include-package Rationale_Analysis \
         --silent --cuda-device ${CUDA_DEVICE:?"set cuda device"} \
+        --output-metrics $3 \
         $THRESHOLDER_CONFIG_FILE $2;
     fi;
 }
 
-rationale $THRESHOLDER_FOLDER_NAME/train.jsonl $TRAIN_DATA_PATH
-rationale $THRESHOLDER_FOLDER_NAME/dev.jsonl $DEV_DATA_PATH
-rationale $THRESHOLDER_FOLDER_NAME/test.jsonl $TEST_DATA_PATH
+rationale $THRESHOLDER_FOLDER_NAME/train.jsonl $TRAIN_DATA_PATH $THRESHOLDER_FOLDER_NAME/train_metrics.json 
+rationale $THRESHOLDER_FOLDER_NAME/dev.jsonl $DEV_DATA_PATH $THRESHOLDER_FOLDER_NAME/dev_metrics.json
+rationale $THRESHOLDER_FOLDER_NAME/test.jsonl $TEST_DATA_PATH $THRESHOLDER_FOLDER_NAME/test_metrics.json

@@ -83,6 +83,8 @@ class RationalePredict(Subcommand):
         subparser.add_argument("input_file", type=str, help="path to or url of the input file")
 
         subparser.add_argument("--output-file", type=str, help="path to output file")
+        subparser.add_argument("--output-metrics", type=str, help="output path to the metrics file")
+
         subparser.add_argument(
             "--weights-file", type=str, help="a path that overrides which weights file to use"
         )
@@ -162,6 +164,7 @@ class _PredictManager:
         batch_size: int,
         print_to_console: bool,
         has_dataset_reader: bool,
+        output_metrics = None,
     ) -> None:
 
         self._predictor = predictor
@@ -170,6 +173,10 @@ class _PredictManager:
             self._output_file = open(output_file, "w")
         else:
             self._output_file = None
+        if output_metrics is not None:
+            self._metrics_file = open(output_metrics, "w")
+        else:
+            self._metrics_file = None
         self._batch_size = batch_size
         self._print_to_console = print_to_console
         if has_dataset_reader:
@@ -241,6 +248,9 @@ class _PredictManager:
 
         if self._output_file is not None:
             self._output_file.close()
+        if self._metrics_file is not None:
+            self._metrics_file.write(json.dumps(self._predictor.get_metrics()))
+            self._metrics_file.close()
 
 
 def _predict(args: argparse.Namespace) -> None:
@@ -258,5 +268,6 @@ def _predict(args: argparse.Namespace) -> None:
         args.batch_size,
         not args.silent,
         args.use_dataset_reader,
+        args.output_metrics
     )
     manager.run()

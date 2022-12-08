@@ -13,3 +13,6 @@ class RationalePredictor(Predictor) :
         self._model.prediction_mode = True
         outputs = self._model.forward_on_instances(instances)
         return sanitize(outputs)
+
+    def get_metrics(self):
+        return self._model.get_metrics()

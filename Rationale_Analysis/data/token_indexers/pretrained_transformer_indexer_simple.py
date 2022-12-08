@@ -45,6 +45,10 @@ class PretrainedTransformerIndexerSimple(PretrainedTransformerIndexer):
         else :
             doc_starting_offsets, doc_ending_offsets = list(zip(*offsets_doc))
 
+        # TODO: here is where the positional embeddings of longer documents are handled
+        # This is going to impact:
+        # 1) Longformer model - as it's going to use incorrect embeddings -> just change its tokeniser to a different one
+        # 2) RoBERTa-based models - check it handles right now the longer documents - ensure they are no tricks here
         if len(wordpiece_ids) > 512:
             postions_ids = [
                 i * 512 / len(wordpiece_ids) for i in range(len(wordpiece_ids))
