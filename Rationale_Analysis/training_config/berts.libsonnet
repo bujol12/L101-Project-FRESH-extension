@@ -1,4 +1,6 @@
 local bert_type = std.extVar('BERT_TYPE');
+local is_long = std.findSubstr('longformer', bert_type) == [];
+local max_length = if is_long then 512 else 4096;
 
 local base_model = {
   bert_model: bert_type,
@@ -12,7 +14,7 @@ local base_model_movies = {
       bert: {
         type: "pretrained_transformer_mismatched",
         model_name: bert_type,
-        max_length: 512
+        max_length: max_length
       },
     },
   },
@@ -39,6 +41,7 @@ local base_indexer = {
 
 local indexer = "pretrained-simple";
 local indexer_movies = "pretrained-simple-movies";
+local indexer_long = "pretrained-long";
 
 local bert_model = base_model + {
   type: "bert_classifier",
@@ -71,7 +74,7 @@ local is_movies = if std.findSubstr('movies', std.extVar('TRAIN_DATA_PATH')) == 
     classifier: if is_movies then bert_model_movies else bert_model,
     generator: if is_movies then bert_gen_model_movies else bert_gen_model,
     indexer: base_indexer + {
-      type : if is_movies then indexer_movies else indexer
-    } + (if is_movies then {max_length: 512} else {}),
+      type : if is_movies then indexer_movies else (if is_long then indexer_long else indexer)
+    } + (if is_movies then {max_length: max_length} else {}),
     extractor: if is_movies then bert_extractor_model_movies else bert_extractor_model
 }
