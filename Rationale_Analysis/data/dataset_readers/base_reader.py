@@ -13,9 +13,17 @@ from allennlp.data.tokenizers.whitespace_tokenizer import WhitespaceTokenizer
 from numpy.random import RandomState
 from overrides import overrides
 
+from dataclasses import dataclass
+from typing import Optional, Dict
+
+# trick to allow to use token.info which library uses a lot, but is
+# incompatible with newer versions of Transformers that have Longformer
+@dataclass(init=False, repr=False)
+class MyToken(Token):
+    info: Optional[Dict]
 
 def to_token(text):
-    token = Token(text)
+    token = MyToken(text)
     token.info = {}
     return token
 

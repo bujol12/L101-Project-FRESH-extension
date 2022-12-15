@@ -69,7 +69,6 @@ class TopKThresholder(Thresholder) :
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         metrics = self.tok_f1.get_metric(reset)
-        metrics = dict(zip(["p", "r", "f1"], metrics))
-        return metrics
+        return metrics 
 
             

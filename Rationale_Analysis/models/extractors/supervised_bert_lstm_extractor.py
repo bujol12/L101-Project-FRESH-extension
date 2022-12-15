@@ -129,7 +129,6 @@ class SupervisedBertLstmExtractor(RationaleBaseModel):
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         metrics = self._token_prf.get_metric(reset)
-        metrics = dict(zip(["p", "r", "f1"], metrics))
         metrics.update({"rlength": float(self._rationale_length.get_metric(reset))})
         return metrics
 

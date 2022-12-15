@@ -116,4 +116,4 @@ class BernoulliBertGenerator(RationaleBaseModel):
         except:
             metrics = {"_rp": 0, "_rr": 0, "_rf1": 0}
             return metrics
-        return dict(zip(["_rp", "_rr", "_rf1"], metrics))
+        return metrics

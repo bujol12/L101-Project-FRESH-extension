@@ -136,17 +136,17 @@ class PretrainedTransformerIndexerSimple(PretrainedTransformerIndexer):
     ) -> Tuple[List[int], List[int], List[Tuple[int, int]], List[Tuple[int, int]]]:
 
         wordpieces_a, offsets_a, cumulative = self.intra_word_tokenize_in_id(
-            tokens_a, self._allennlp_tokenizer.num_added_start_tokens
+            tokens_a, self._num_added_start_tokens
         )
 
         wordpieces_b, offsets_b, cumulative = self.intra_word_tokenize_in_id(
-            tokens_b, cumulative + self._allennlp_tokenizer.num_added_middle_tokens
+            tokens_b, cumulative + self._num_added_middle_tokens
         )
 
         text_ids = self._tokenizer.build_inputs_with_special_tokens(wordpieces_a, wordpieces_b)
         type_ids = self._tokenizer.create_token_type_ids_from_sequences(wordpieces_a, wordpieces_b)
 
-        assert cumulative + self._allennlp_tokenizer.num_added_end_tokens == len(text_ids)
+        assert cumulative + self._num_added_end_tokens == len(text_ids)
         return text_ids, type_ids, offsets_a, offsets_b
 
     def intra_word_tokenize_sentence(
@@ -154,11 +154,11 @@ class PretrainedTransformerIndexerSimple(PretrainedTransformerIndexer):
     ) -> Tuple[List[int], List[int], List[Tuple[int, int]]]:
 
         wordpieces_a, offsets_a, cumulative = self.intra_word_tokenize_in_id(
-            tokens_a, self._allennlp_tokenizer.num_added_start_tokens
+            tokens_a, self._num_added_start_tokens
         )
 
         text_ids = self._tokenizer.build_inputs_with_special_tokens(wordpieces_a)
         type_ids = self._tokenizer.create_token_type_ids_from_sequences(wordpieces_a)
 
-        assert cumulative + self._allennlp_tokenizer.num_added_end_tokens == len(text_ids)
+        assert cumulative + self._num_added_end_tokens == len(text_ids)
         return text_ids, type_ids, offsets_a
