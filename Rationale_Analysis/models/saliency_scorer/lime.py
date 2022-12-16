@@ -5,6 +5,7 @@ from allennlp.models.model import Model
 from lime import lime_text
 from lime.lime_text import LimeTextExplainer
 import numpy as np
+import torch
 
 from functools import partial
 from copy import deepcopy
@@ -15,42 +16,38 @@ class LimeSaliency(SaliencyScorer):
     def __init__(self, model):
         super().__init__(model)
 
-        #self.lime_explainer = LimeTextExplainer(mask_string=)
+        self.lime_explainer = LimeTextExplainer(mask_string=model._vocabulary._oov_token, bow=False)
 
     def score(self, document, metadata, **kwargs):
         # metadata is the original input - modified that by LIME and re-tokenise
         # contains: annotation_id, human_rationale, document, label
 
         # use as labels for LIME
-        preds = self._model['model'](document=document, metadata=metadata, **kwargs)
-        labels = preds['predicted_labels']
-        print(preds['probs'])
+        output_dicts = self._model['model'](document=document, metadata=metadata, **kwargs)
+        labels = output_dicts['predicted_labels']
 
         for idx, mt in enumerate(metadata):
             reader_obj = document[idx]['reader_object']
 
             pred_fn = partial(self.__prepare_data_and_call_model, reader_obj=reader_obj, 
                 annotation_id=mt['annotation_id'], human_rationale=mt['human_rationale'], mt_label=mt['label'], **kwargs)
-            print(pred_fn(mt_documents=[mt['document']]))
+            label = labels[idx].cpu().item()
+            exp = self.lime_explainer.explain_instance(mt['document'], pred_fn, num_features=4096, labels=(label, ), num_samples=1000)    
+            scores_map = exp.as_map()[label]
+
+            scores = torch.zeros(len(scores_map))
+            
+            for i, score in scores_map:
+                scores[i] = max(score, 0.0)
+            
+            output_dicts['attentions'][idx][:len(scores)] = scores
         
-        # TODO:
-        # 0) Correcntly initialise LimeTextExplainer with the UNK token
-        # 1) Call Lime Text Explainer in the above loop
-        # 2) Return Lime token scores for each token
-        # 3) Handle make_output_human_readable() missing error -> check gradients version
-        # print(self._model['model']._vocabulary._oov_token)
-
-        # print(document)
-        # print(query)
-        # print(document[0]["tokens"][5])
-
-        # document[0]["tokens"][5] = to_token(self._model['model']._vocabulary._oov_token)
-        # print(document[0]['reader_object'].combine_document_query(document, query, self._model['model']._vocabulary))
-
-    def __prepare_data_and_call_model(self, annotation_id, human_rationale, mt_label, reader_obj, mt_documents: List[str], **kwargs):
+        return output_dicts
+        
+    def __prepare_data_and_call_model(self, mt_documents: List[str], annotation_id, human_rationale, mt_label, reader_obj, **kwargs):
         res = []
         for mt_document in mt_documents:
-        
+
             instance = reader_obj.text_to_instance(
                 annotation_id,
                 mt_document,
@@ -63,6 +60,6 @@ class LimeSaliency(SaliencyScorer):
             for key, val in inp_dct.items():
                 inp_dct[key] = [val]
 
-            res.append(self._model['model'](**inp_dct)['probs'])
+            res.append(self._model['model'](**inp_dct)['probs'].cpu().numpy())
 
-        return np.array(res)
+        return np.vstack(res)
