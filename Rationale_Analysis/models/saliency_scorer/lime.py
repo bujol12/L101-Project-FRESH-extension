@@ -32,7 +32,7 @@ class LimeSaliency(SaliencyScorer):
             pred_fn = partial(self.__prepare_data_and_call_model, reader_obj=reader_obj, 
                 annotation_id=mt['annotation_id'], human_rationale=mt['human_rationale'], mt_label=mt['label'], **kwargs)
             label = labels[idx].cpu().item()
-            exp = self.lime_explainer.explain_instance(mt['document'], pred_fn, num_features=4096, labels=(label, ), num_samples=100)    
+            exp = self.lime_explainer.explain_instance(mt['document'], pred_fn, num_features=4096, labels=(label, ), num_samples=500)    
             scores_map = exp.as_map()[label]
 
             scores = torch.zeros(len(scores_map))

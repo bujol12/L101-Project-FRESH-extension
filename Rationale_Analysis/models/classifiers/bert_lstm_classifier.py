@@ -74,7 +74,7 @@ class EncoderAttentionClassifier(RationaleBaseModel):
         probs = torch.nn.Softmax(dim=-1)(logits)
 
         output_dict = {}
-
+        output_dict["length"] = torch.tensor([len(doc["tokens"]) for doc in document])
         output_dict['logits'] = logits
         output_dict["probs"] = probs
         output_dict["predicted_labels"] = probs.argmax(-1)
@@ -94,6 +94,7 @@ class EncoderAttentionClassifier(RationaleBaseModel):
         new_output_dict["predicted_label"] = output_dict["predicted_labels"].cpu().data.numpy()
         new_output_dict["label"] = output_dict["gold_labels"].cpu().data.numpy()
         new_output_dict["metadata"] = output_dict["metadata"]
+        new_output_dict["length"] = output_dict["length"].cpu().data.numpy()
         return new_output_dict
 
     def prepare_for_gradient(self) :

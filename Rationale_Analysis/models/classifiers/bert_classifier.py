@@ -56,6 +56,7 @@ class BertClassifier(RationaleBaseModel):
             position_ids=bert_document["bert"]["position-ids"],
             token_type_ids=bert_document["bert"]["type-ids"],
         )
+        print(len(bert_document["bert"]["wordpiece-ids"]))
 
         logits = self._classifier(self._dropout(pooled_output))
 
@@ -64,6 +65,7 @@ class BertClassifier(RationaleBaseModel):
         output_dict = {}
         attentions = attentions[-1][:, :, 0, :].mean(1)
 
+        output_dict["length"] = torch.tensor([len(doc["tokens"]) for doc in document])
         output_dict["logits"] = logits
         output_dict["probs"] = probs
         output_dict["predicted_labels"] = probs.argmax(-1)
@@ -86,6 +88,7 @@ class BertClassifier(RationaleBaseModel):
         new_output_dict["predicted_label"] = output_dict["predicted_labels"].cpu().data.numpy()
         new_output_dict["label"] = output_dict["gold_labels"].cpu().data.numpy()
         new_output_dict["metadata"] = output_dict["metadata"]
+        new_output_dict["length"] = output_dict["length"].cpu().data.numpy()
         return new_output_dict
 
     def normalize_attentions(self, output_dict) -> None:
